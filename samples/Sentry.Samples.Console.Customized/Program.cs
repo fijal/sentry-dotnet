@@ -103,8 +103,7 @@ namespace Sentry.Samples.Console.Customized
                 {
                     // Make believe web framework middleware
                     var middleware = new AdminPartMiddleware(adminClient, null);
-                    var request = new { Path = "/admin" }; // made up request
-                    middleware.Invoke(request);
+                    middleware.Invoke("/admin");
 
                 } // Dispose the client which flushes any queued events
 
@@ -125,14 +124,14 @@ namespace Sentry.Samples.Console.Customized
                 _middleware = middleware;
             }
 
-            public void Invoke(dynamic request)
+            public void Invoke(string request)
             {
                 using (SentrySdk.PushScope())
                 {
-                    SentrySdk.AddBreadcrumb(request.Path, "request-path");
+                    SentrySdk.AddBreadcrumb(request, "request-path");
 
                     // Change the SentryClient in case the request is to the admin part:
-                    if (request.Path.StartsWith("/admin"))
+                    if (request.StartsWith("/admin"))
                     {
                         // Within this scope, the _adminClient will be used instead of whatever
                         // client was defined before this point:
@@ -141,8 +140,6 @@ namespace Sentry.Samples.Console.Customized
 
                     SentrySdk.CaptureException(new Exception("Error at the admin section"));
                     // Else it uses the default client
-
-                    _middleware?.Invoke(request);
 
                 } // Scope is disposed.
             }
